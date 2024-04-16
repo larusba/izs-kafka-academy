@@ -1,0 +1,282 @@
+version: "3"
+
+networks:
+  kafka_academy:
+    driver: bridge
+
+volumes:
+  postgres:
+  postgresTarget:
+
+services:
+
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    image: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/data/postgres
+      - ./sql/create_table_person.sql:/docker-entrypoint-initdb.d/create_table_person.sql
+      - ./sql/insert_into_person.sql:/docker-entrypoint-initdb.d/insert_into_person.sql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    restart: unless-stopped
+    networks:
+      - kafka_academy
+
+  postgresTarget:
+    container_name: postgresTarget
+    hostname: postgresTarget
+    image: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgresTarget:/data/postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PGDATA: /data/postgres
+    restart: unless-stopped
+    networks:
+      - kafka_academy
+
+  zk1:
+    image: confluentinc/cp-zookeeper
+    hostname: zk1
+    container_name: zk1
+    ports:
+      - "22181:22181"
+      - "22888:22888"
+      - "23888:23888"
+    volumes:
+      - ./zk1/data:/data
+    environment:
+      ZOOKEEPER_SERVER_ID: 1    
+      ZOOKEEPER_CLIENT_PORT: 22181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zk1:22888:23888;zk2:32888:33888;zk3:42888:43888
+    networks:
+      - kafka_academy
+
+  zk2:
+    image: confluentinc/cp-zookeeper
+    hostname: zk2
+    container_name: zk2
+    ports:
+      - "32181:32181"
+      - "32888:32888"
+      - "33888:33888"
+    volumes:
+      - ./zk2/data:/data
+    environment:
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_CLIENT_PORT: 32181
+      ZOOKEEPER_TICK_TIME: 2000      
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zk1:22888:23888;zk2:32888:33888;zk3:42888:43888
+    networks:
+      - kafka_academy
+      
+  zk3:
+    image: confluentinc/cp-zookeeper
+    hostname: zk3
+    container_name: zk3
+    ports:
+      - "42181:42181"
+      - "42888:42888"
+      - "43888:43888"
+    volumes:
+      - ./zk3/data:/data
+    environment:
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_CLIENT_PORT: 42181
+      ZOOKEEPER_TICK_TIME: 2000      
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zk1:22888:23888;zk2:32888:33888;zk3:42888:43888
+    networks:
+      - kafka_academy
+      
+  broker1:
+    image: confluentinc/cp-enterprise-kafka
+    hostname: broker1
+    container_name: broker1
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - ./mock-data:/tmp/mock-data
+      - ./consumer-configs:/tmp/consumer-configs
+    environment:
+      KAFKA_BROKER_ID: 101
+      KAFKA_ZOOKEEPER_CONNECT: zk1:22181,zk2:32181,zk3:42181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker1:29092,PLAINTEXT_HOST://localhost:9092
+      ALLOW_PLAINTEXT_LISTENER: 'yes'    
+      KAFKA_AUTO_OFFSET_RESET: "latest"
+      KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: "broker1:29092,broker2:39092,broker3:49092"
+    networks:
+      - kafka_academy
+      
+  broker2:
+    image: confluentinc/cp-enterprise-kafka
+    hostname: broker2
+    container_name: broker2
+    ports:
+      - "9093:9093"
+      - "39092:39092"
+    depends_on:
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - ./mock-data:/tmp/mock-data
+      - ./consumer-configs:/tmp/consumer-configs
+    environment:
+      KAFKA_BROKER_ID: 102
+      KAFKA_ZOOKEEPER_CONNECT: zk1:22181,zk2:32181,zk3:42181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:39092,PLAINTEXT_HOST://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2:39092,PLAINTEXT_HOST://localhost:9093
+      ALLOW_PLAINTEXT_LISTENER: 'yes'    
+      KAFKA_AUTO_OFFSET_RESET: "latest"
+      KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: "broker1:29092,broker2:39092,broker3:49092"
+    networks:
+      - kafka_academy
+      
+  broker3:
+    image: confluentinc/cp-enterprise-kafka
+    hostname: broker3
+    container_name: broker3
+    ports:
+      - "9094:9094"
+      - "49092:49092"
+    depends_on:
+      - zk1
+      - zk2
+      - zk3
+    volumes:
+      - ./mock-data:/tmp/mock-data
+      - ./consumer-configs:/tmp/consumer-configs
+    environment:
+      KAFKA_BROKER_ID: 103
+      KAFKA_ZOOKEEPER_CONNECT: zk1:22181,zk2:32181,zk3:42181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:49092,PLAINTEXT_HOST://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker3:49092,PLAINTEXT_HOST://localhost:9094
+      ALLOW_PLAINTEXT_LISTENER: 'yes'
+      KAFKA_AUTO_OFFSET_RESET: "latest"
+      KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: "broker1:29092,broker2:39092,broker3:49092"
+    networks:
+      - kafka_academy
+
+  connect:
+    image: confluentinc/cp-kafka-connect
+    hostname: connect
+    container_name: connect
+    depends_on:
+      - zk1
+      - zk2
+      - zk3
+      - broker1
+      - broker2
+      - broker3
+      - schema-registry
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./connect/plugins:/tmp/connect-plugins
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "broker1:29092,broker2:39092,broker3:49092"
+      CONNECT_ZOOKEEPER_CONNECT: "zk1:22181,zk2:32181,zk3:42181"
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: "academy-connect-group"
+      CONNECT_CONFIG_STORAGE_TOPIC: "docker-connect-configs"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: "docker-connect-offsets"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_TOPIC: "docker-connect-status"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      #CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      #CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+      #CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      #CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_PLUGIN_PATH: /usr/share/java,/tmp/connect-plugins,/usr/share/confluent-hub-components
+      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor
+      CONNECT_CONSUMER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor
+      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=DEBUG,org.I0Itec.zkclient=DEBUG,org.reflections=ERROR,org.apache.kafka.connect.transforms
+    networks:
+      - kafka_academy
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry
+    hostname: schema-registry
+    container_name: schema-registry
+    healthcheck:
+      test: curl -fail --silent http://schema-registry:8081/subjects --output /dev/null || exit 1
+      interval: 10s
+      retries: 20
+      #start_period: 20s
+    depends_on:
+      - broker1
+        #condition: service_healthy
+      - broker2
+        #condition: service_healthy
+      - broker3
+        #condition: service_healthy
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker1:29092,broker2:39092,broker3:49092"
+      SCHEMA_REGISTRY_LISTENERS: "http://schema-registry:8081,http://localhost:8081"
+    ports:
+      - "8081:8081"
+    networks:
+      - kafka_academy
+
+  control-center:
+    image: confluentinc/cp-enterprise-control-center
+    hostname: control-center
+    container_name: control-center
+    depends_on:
+      - broker1
+      - broker2
+      - broker3
+      - connect
+      - schema-registry
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: "broker1:29092,broker2:39092,broker3:49092"
+      CONTROL_CENTER_CONNECT_ACADEMY_CLUSTER: "http://connect:8083"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONTROL_CENTER_ZOOKEEPER_CONNECT: "zk1:22181,zk2:32181,zk3:42181"
+      CONTROL_CENTER_STREAMS_NUM_STREAM_THREADS: 4
+      CONTROL_CENTER_REPLICATION_FACTOR: 3
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 3
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 3
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 3
+      CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT: '/connectors'
+      PORT: 9021
+    networks:
+      - kafka_academy

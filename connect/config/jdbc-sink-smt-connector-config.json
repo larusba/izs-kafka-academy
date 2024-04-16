@@ -1,0 +1,28 @@
+{
+  "name": "JdbcSinkSMTFilterConnector",
+  "config": {
+    "topics": "employee",
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "connection.url": "jdbc:postgresql://postgresTarget:5432/postgres",
+    "connection.user": "postgres",
+    "connection.password": "password",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+    "insert.mode": "upsert",
+    "pk.mode": "record_value",
+    "pk.fields": "id",
+    "table.name.format": "sink_${topic}",
+    "auto.create": "true",
+    "errors.tolerance": "all",
+    "errors.log.enable": true,
+    "errors.deadletterqueue.topic.name": "neo4j-sink-smt-dlq",
+    "errors.log.include.messages": true,
+    "transforms": "filterFemaleEmployees",
+    "transforms.filterFemaleEmployees.type": "io.confluent.connect.transforms.Filter$Value",
+    "transforms.filterFemaleEmployees.filter.condition": "$[?(@.gender == \"Female\")]",
+    "transforms.filterFemaleEmployees.filter.type":"include",
+    "transforms.filterFemaleEmployees.missing.or.null.behavior":"fail"
+  }
+}

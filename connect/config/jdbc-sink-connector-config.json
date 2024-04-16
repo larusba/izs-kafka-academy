@@ -1,0 +1,23 @@
+{
+  "name": "JdbcSinkPostgresConnector",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "tasks.max": "1",
+    "topics": "postgres-person",
+    "connection.url": "jdbc:postgresql://postgresTarget:5432/postgres",
+    "connection.user": "postgres",
+    "connection.password": "password",
+    "insert.mode": "upsert",
+    "pk.mode": "record_value",
+    "pk.fields": "id",
+    "table.name.format": "sink_${topic}",
+    "auto.create": "true",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "errors.tolerance": "all",
+    "errors.deadletterqueue.topic.name": "dlqTopic",
+    "errors.deadletterqueue.topic.replication.factor": 3,
+    "errors.deadletterqueue.context.headers.enable": true,
+    "errors.log.enable": true
+  }
+}
