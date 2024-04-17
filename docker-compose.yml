@@ -53,7 +53,7 @@ services:
       - "22888:22888"
       - "23888:23888"
     volumes:
-      - ./zk1/data:/data
+      - ./zk1-data:/var/lib/zokeeper/data
     environment:
       ZOOKEEPER_SERVER_ID: 1    
       ZOOKEEPER_CLIENT_PORT: 22181
@@ -73,7 +73,7 @@ services:
       - "32888:32888"
       - "33888:33888"
     volumes:
-      - ./zk2/data:/data
+      - ./zk2-data:/var/lib/zokeeper/data
     environment:
       ZOOKEEPER_SERVER_ID: 2
       ZOOKEEPER_CLIENT_PORT: 32181
@@ -93,7 +93,7 @@ services:
       - "42888:42888"
       - "43888:43888"
     volumes:
-      - ./zk3/data:/data
+      - ./zk3-data:/var/lib/zokeeper/data
     environment:
       ZOOKEEPER_SERVER_ID: 3
       ZOOKEEPER_CLIENT_PORT: 42181
@@ -117,6 +117,7 @@ services:
       - zk3
     volumes:
       - ./mock-data:/tmp/mock-data
+      - ./broker1-data:/var/lib/kafka/data
       - ./consumer-configs:/tmp/consumer-configs
     environment:
       KAFKA_BROKER_ID: 101
@@ -144,6 +145,7 @@ services:
       - zk3
     volumes:
       - ./mock-data:/tmp/mock-data
+      - ./broker2-data:/var/lib/kafka/data
       - ./consumer-configs:/tmp/consumer-configs
     environment:
       KAFKA_BROKER_ID: 102
@@ -171,6 +173,7 @@ services:
       - zk3
     volumes:
       - ./mock-data:/tmp/mock-data
+      - ./broker3-data:/var/lib/kafka/data
       - ./consumer-configs:/tmp/consumer-configs
     environment:
       KAFKA_BROKER_ID: 103
@@ -218,8 +221,8 @@ services:
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       #CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
       #CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
-      #CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
-      #CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_PLUGIN_PATH: /usr/share/java,/tmp/connect-plugins,/usr/share/confluent-hub-components

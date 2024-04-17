@@ -6,3 +6,11 @@
 .idea
 .gitignore
 **/.DS_Store
+
+zk1-data
+zk2-data
+zk3-data
+
+broker1-data
+broker2-data
+broker3-data

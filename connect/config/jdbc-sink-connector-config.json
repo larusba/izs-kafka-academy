@@ -10,7 +10,7 @@
     "insert.mode": "upsert",
     "pk.mode": "record_value",
     "pk.fields": "id",
-    "table.name.format": "sink_${topic}",
+    "table.name.format": "${topic}",
     "auto.create": "true",
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",

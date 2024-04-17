@@ -1,0 +1,22 @@
+{
+  "name": "JdbcSourcePostgresSMTCreateKeyConnector",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+    "connection.url": "jdbc:postgresql://postgres:5432/postgres",
+    "connection.user": "postgres",
+    "connection.password": "password",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "table.types": "TABLE",
+    "table.whitelist": "person",
+    "topic.prefix": "key-",
+    "mode":"timestamp+incrementing",
+    "incrementing.column.name": "id",
+    "timestamp.column.name": "last_update",
+    "validate.non.null": false,
+    "poll.interval.ms" : 2000,
+    "transforms": "createKey",
+    "transforms.createKey.type": "org.apache.kafka.connect.transforms.ValueToKey",
+    "transforms.createKey.fields": "id,first_name,last_name"
+  }
+}
