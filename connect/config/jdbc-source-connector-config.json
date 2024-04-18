@@ -1,5 +1,5 @@
 {
-    "name": "JdbcSourcePostgresConnector",
+    "name": "JdbcSourcePostgresConnector2",
     "config": {
         "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
         "connection.url": "jdbc:postgresql://postgres:5432/postgres",
@@ -9,7 +9,6 @@
         "value.converter": "org.apache.kafka.connect.json.JsonConverter",
         "table.types": "TABLE",
         "table.whitelist": "person",
-        "topic.prefix": "postgres-",
         "mode":"timestamp+incrementing",
         "incrementing.column.name": "id",
         "timestamp.column.name": "last_update",

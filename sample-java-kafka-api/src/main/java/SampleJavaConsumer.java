@@ -52,7 +52,7 @@ public class SampleJavaConsumer {
             }
 
             records.forEach(record -> {
-                mapRecord.put("Partition " + record.partition() + " - Offset: " + record.offset(), record.value());
+                mapRecord.put("Partition " + record.partition() + " - Offset: " + record.offset() + " - Key: " + record.key(), record.value());
             });
             consumer.commitAsync();
         }
