@@ -10,7 +10,7 @@
 
 
     <properties>
-        <kafka.version>3.6.1</kafka.version>
+        <kafka.version>3.7.1</kafka.version>
     </properties>
 
     <dependencies>
